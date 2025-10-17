@@ -1,0 +1,16 @@
+// Arquivo de teste para o analisador lexico X++
+
+/*
+  Este é um comentario de bloco.
+  A palavra reservada 'class' sera um ID. [cite: 18]
+*/
+
+_identificador1 = 12345;
+string_literal = "Ola, mundo!"; // string [cite: 15]
+class Teste {
+    int valor = 0;
+}
+
+if (a > b && c <= d) {
+    // operadores: > <= 
+}
