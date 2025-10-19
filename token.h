@@ -1,20 +1,41 @@
+#ifndef TOKEN_H
+#define TOKEN_H
+
 #include <iostream>
-#include <ctype.h> 
+#include <ctype.h>
 #include <string>
+#include <map>
 
 using namespace std;
 
+//Enumeração com todos os tokens da linguagem X++
 enum Names
 {
     UNDEF,
     END_OF_FILE,
 
     //Identificador
-    ID, //Sequência de letras, dígitos e underscores
+    ID,
 
     //Literais
-    INTEGER_LITERAL, //Sequência de dígitos
-    STRING_LITERAL,  //Delimitado por aspas duplas
+    INTEGER_LITERAL,
+    STRING_LITERAL,
+
+    //Palavras Reservadas
+    CLASS,
+    EXTENDS,
+    INT,
+    STRING,
+    BREAK,
+    PRINT,
+    READ,
+    RETURN,
+    SUPER,
+    IF,
+    ELSE,
+    FOR,
+    NEW,
+    CONSTRUCTOR,
 
     //Operadores
     OP_LE, // <=
@@ -29,7 +50,7 @@ enum Names
     OP_MUL, // *
     OP_DIV, // /
     OP_MOD, // %
-    
+
     //Separadores
     SEP_LPAREN,   // (
     SEP_RPAREN,   // )
@@ -68,3 +89,5 @@ public:
         attribute = attr;
     }
 };
+
+#endif

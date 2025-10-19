@@ -1,0 +1,16 @@
+class MeuPrograma {
+    int x;
+    string y;
+
+    int meuMetodo(int a, string b) {
+        x = a;
+        y = b;
+        print x;
+        return 0;
+    }
+
+    constructor() {
+        int z;
+        z = 10;
+    }
+}

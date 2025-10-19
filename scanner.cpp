@@ -1,10 +1,28 @@
 #include "scanner.h"
 
-//Construtor que recebe uma string com o nome do arquivo de entrada e preenche input com seu conteúdo.
+//Construtor que recebe uma string com o nome do arquivo 
+//de entrada e preenche input com seu conteúdo.
 Scanner::Scanner(string input_file)
 {
     pos = 0;
     line = 1;
+
+    //Preenche o mapa de palavras reservadas
+    reservedKeywords["class"] =       CLASS;
+    reservedKeywords["extends"] =     EXTENDS;
+    reservedKeywords["int"] =         INT;
+    reservedKeywords["string"] =      STRING;
+    reservedKeywords["break"] =       BREAK;
+    reservedKeywords["print"] =       PRINT;
+    reservedKeywords["read"] =        READ;
+    reservedKeywords["return"] =      RETURN;
+    reservedKeywords["super"] =       SUPER;
+    reservedKeywords["if"] =          IF;
+    reservedKeywords["else"] =        ELSE;
+    reservedKeywords["for"] =         FOR;
+    reservedKeywords["new"] =         NEW;
+    reservedKeywords["constructor"] = CONSTRUCTOR;
+
 
     ifstream inputFile(input_file, ios::in);
     string file_line;
@@ -26,11 +44,19 @@ int Scanner::getLine()
     return line;
 }
 
+//Funções auxiliares para o Parser
+int Scanner::getPos() { return pos; }
+void Scanner::setPos(int p) { pos = p; }
+int Scanner::getLineInternal() { return line; }
+void Scanner::setLine(int l) { line = l; }
+
+
 //Método que retorna o próximo token da entrada
-Token* Scanner::nextToken()
+Token *
+Scanner::nextToken()
 {
     string lexeme;
-    
+
     //Loop para ignorar espaços em branco e comentários
     while (pos < input.length())
     {
@@ -62,7 +88,7 @@ Token* Scanner::nextToken()
             //Comentário de bloco
             else if (pos + 1 < input.length() && input[pos + 1] == '*')
             {
-                pos += 2; // Pula o '/*'
+                pos += 2; 
                 while (pos + 1 < input.length() && (input[pos] != '*' || input[pos + 1] != '/'))
                 {
                     if (input[pos] == '\n')
@@ -71,20 +97,22 @@ Token* Scanner::nextToken()
                     }
                     pos++;
                 }
-                if (pos + 1 >= input.length()) {
+                if (pos + 1 >= input.length())
+                {
                     lexicalError("Comentario de bloco nao fechado.");
                 }
                 pos += 2; 
                 continue;
             }
-            //Se for apenas '/', é o operador de divisão
-            else {
+            // Se for apenas '/', é o operador de divisão
+            else
+            {
                 break;
             }
         }
         else
         {
-            break; //Sai do loop se encontrar um caractere que não seja espaço/comentário
+            break; 
         }
     }
 
@@ -94,7 +122,7 @@ Token* Scanner::nextToken()
         return new Token(END_OF_FILE);
     }
 
-    //Reconhecimento de Identificadores (ID)
+    //Reconhecimento de ID e Palavras Reservadas
     if (isalpha(input[pos]) || input[pos] == '_')
     {
         lexeme += input[pos++];
@@ -102,7 +130,13 @@ Token* Scanner::nextToken()
         {
             lexeme += input[pos++];
         }
-        //Nesta etapa, palavras reservadas são tratadas como IDs
+
+        //Verifica se o lexema é uma palavra reservada
+        if (reservedKeywords.count(lexeme))
+        {
+            return new Token(reservedKeywords[lexeme], lexeme);
+        }
+        
         return new Token(ID, lexeme);
     }
 
@@ -116,82 +150,69 @@ Token* Scanner::nextToken()
         }
         return new Token(INTEGER_LITERAL, lexeme);
     }
-    
+
     //Reconhecimento de Literais String
     if (input[pos] == '"')
     {
-        pos++; // Pula a aspa inicial
+        pos++; 
         while (pos < input.length() && input[pos] != '"')
         {
-            if (input[pos] == '\n') { // Strings não podem quebrar linha
+            if (input[pos] == '\n')
+            { 
                 lexicalError("String literal nao fechada na mesma linha.");
             }
             lexeme += input[pos++];
         }
-        if (pos >= input.length()) {
+        if (pos >= input.length())
+        {
             lexicalError("String literal nao fechada.");
         }
-        pos++; // Pula a aspa final
+        pos++; 
         return new Token(STRING_LITERAL, lexeme);
     }
 
     //Reconhecimento de Operadores e Separadores
     switch (input[pos++])
     {
-        //Operadores de dois caracteres
-        case '<':
-            if (pos < input.length() && input[pos] == '=') { 
-                pos++; 
-                return new Token(OP_LE, "<="); 
-            } else return new Token(OP_LT, "<");
-        case '>':
-            if (pos < input.length() && input[pos] == '=') { 
-                pos++; 
-                return new Token(OP_GE, ">="); 
-            } else return new Token(OP_GT, ">");
-        case '=':
-            if (pos < input.length() && input[pos] == '=') { 
-                pos++; 
-                return new Token(OP_EQ, "=="); 
-            } else return new Token(OP_ASSIGN, "=");
-        case '!':
-            if (pos < input.length() && input[pos] == '=') { 
-                pos++; 
-                return new Token(OP_NE, "!="); 
-            } else {
-                lexicalError("Caractere '!' invalido.");
-                return new Token(UNDEF); //Adicionado para evitar warning
-            }
-        
-        //Operadores de um caractere
-        case '+': return new Token(OP_SUM, "+");
-        case '-': return new Token(OP_SUB, "-");
-        case '*': return new Token(OP_MUL, "*");
-        case '/': return new Token(OP_DIV, "/");
-        case '%': return new Token(OP_MOD, "%");
+    //Operadores de dois caracteres
+    case '<':
+        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_LE, "<="); } else return new Token(OP_LT, "<");
+    case '>':
+        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_GE, ">="); } else return new Token(OP_GT, ">");
+    case '=':
+        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_EQ, "=="); } else return new Token(OP_ASSIGN, "=");
+    case '!':
+        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_NE, "!="); } else { lexicalError("Caractere '!' invalido."); return new Token(UNDEF); }
 
-        //Separadores
-        case '(': return new Token(SEP_LPAREN, "(");
-        case ')': return new Token(SEP_RPAREN, ")");
-        case '[': return new Token(SEP_LBRACKET, "[");
-        case ']': return new Token(SEP_RBRACKET, "]");
-        case '{': return new Token(SEP_LBRACE, "{");
-        case '}': return new Token(SEP_RBRACE, "}");
-        case ',': return new Token(SEP_COMMA, ",");
-        case '.': return new Token(SEP_DOT, ".");
-        case ';': return new Token(SEP_SEMICOLON, ";");
+    //Operadores de um caractere
+    case '+': return new Token(OP_SUM, "+");
+    case '-': return new Token(OP_SUB, "-");
+    case '*': return new Token(OP_MUL, "*");
+    case '/': return new Token(OP_DIV, "/");
+    case '%': return new Token(OP_MOD, "%");
 
-        default:
-            lexicalError("Caractere invalido: '" + string(1, input[pos-1]) + "'");
+    //Separadores
+    case '(': return new Token(SEP_LPAREN, "(");
+    case ')': return new Token(SEP_RPAREN, ")");
+    case '[': return new Token(SEP_LBRACKET, "[");
+    case ']': return new Token(SEP_RBRACKET, "]");
+    case '{': return new Token(SEP_LBRACE, "{");
+    case '}': return new Token(SEP_RBRACE, "}");
+    case ',': return new Token(SEP_COMMA, ",");
+    case '.': return new Token(SEP_DOT, ".");
+    case ';': return new Token(SEP_SEMICOLON, ";");
+
+    default:
+        lexicalError("Caractere invalido: '" + string(1, input[pos - 1]) + "'");
     }
 
-    return new Token(UNDEF); //Caso algo inesperado ocorra
+    return new Token(UNDEF); 
 }
 
-void 
+void
 Scanner::lexicalError(string msg)
 {
-    cout << "Linha "<< line << ": " << msg << endl;
-    
+    cout << "Linha " << line << ": " << msg << endl;
+
     exit(EXIT_FAILURE);
 }
