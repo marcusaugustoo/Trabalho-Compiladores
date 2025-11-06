@@ -4,90 +4,88 @@
 #include <iostream>
 #include <ctype.h>
 #include <string>
-#include <map>
 
 using namespace std;
 
-//Enumeração com todos os tokens da linguagem X++
-enum Names
+enum Names 
 {
-    UNDEF,
-    END_OF_FILE,
-
-    //Identificador
-    ID,
-
-    //Literais
-    INTEGER_LITERAL,
-    STRING_LITERAL,
-
+    UNDEF, 
+    ID, 
+    
     //Palavras Reservadas
-    CLASS,
-    EXTENDS,
-    INT,
-    STRING,
-    BREAK,
-    PRINT,
-    READ,
-    RETURN,
-    SUPER,
-    IF,
-    ELSE,
-    FOR,
-    NEW,
-    CONSTRUCTOR,
-
-    //Operadores
-    OP_LE, // <=
-    OP_GE, // >=
-    OP_EQ, // ==
-    OP_NE, // !=
-    OP_LT, // <
-    OP_GT, // >
-    OP_ASSIGN, // =
-    OP_SUM, // +
-    OP_SUB, // -
-    OP_MUL, // *
-    OP_DIV, // /
-    OP_MOD, // %
-
+    CLASS, // 2
+    EXTENDS, // 3
+    INT, // 4
+    STRING, // 5
+    BREAK, // 6
+    PRINT, // 7
+    READ, // 8
+    RETURN, // 9
+    SUPER, // 10
+    IF, // 11
+    ELSE, // 12
+    FOR, // 13
+    NEW, // 14
+    CONSTRUCTOR, // 15
+    PUBLIC,  // 16
+    
+    //Literais
+    INTEGER_LITERAL, // 17
+    STRING_LITERAL, // 18
+    
+    //Operadores 
+    OP_LT,   // < 19
+    OP_GT,   // > 20
+    OP_LE,   // <= 21
+    OP_GE,   // >= 22
+    OP_PLUS, // + 23
+    OP_MINUS,// - 24
+    OP_MULT, // * 25
+    OP_DIV,  // / 26
+    OP_MOD,  // % 27
+    OP_ASSIGN, // = 28  
+    OP_EQ,   // == 29
+    OP_NE,   // != 30
+    
     //Separadores
-    SEP_LPAREN,   // (
-    SEP_RPAREN,   // )
-    SEP_LBRACKET, // [
-    SEP_RBRACKET, // ]
-    SEP_LBRACE,   // {
-    SEP_RBRACE,   // }
-    SEP_COMMA,    // ,
-    SEP_DOT,      // .
-    SEP_SEMICOLON // ;
+    SEP_LPAREN,   // ( 31
+    SEP_RPAREN,   // ) 32
+    SEP_LBRACKET, // [ 33
+    SEP_RBRACKET, // ] 34
+    SEP_LBRACE,   // { 35
+    SEP_RBRACE,   // } 36
+    SEP_SEMICOLON,// ; 37
+    SEP_DOT,      // . 38
+    SEP_COMMA,    // , 39
+
+    END_OF_FILE // 40
 };
 
-class Token
+class Token 
 {
-public:
-    int name;
-    int attribute;
-    string lexeme;
+    public: 
+        int name;
+        int attribute;
+        string lexeme;
+    
+        Token(int name)
+        {
+            this->name = name;
+            attribute = UNDEF;
+        }
 
-    Token(int name)
-    {
-        this->name = name;
-        attribute = UNDEF;
-    }
-
-    Token(int name, string l)
-    {
-        this->name = name;
-        attribute = UNDEF;
-        lexeme = l;
-    }
-
-    Token(int name, int attr)
-    {
-        this->name = name;
-        attribute = attr;
-    }
+        Token(int name, string l)
+        {
+            this->name = name;
+            attribute = UNDEF;
+            lexeme = l;
+        }
+        
+        Token(int name, int attr)
+        {
+            this->name = name;
+            attribute = attr;
+        }
 };
 
 #endif

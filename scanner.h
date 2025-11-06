@@ -1,37 +1,26 @@
-#ifndef SCANNER_H
-#define SCANNER_H
-
+#include "symboltable.h"
 #include <fstream>
-#include <map>
-#include <string>
-#include "token.h"
 
-class Scanner
+class Scanner 
 {
-private:
-    string input; 
-    int pos;    
-    int line;
-    map<string, int> reservedKeywords; //Mapa de palavras reservadas
+    private: 
+        string input; 
+        int pos; 
+        int line;
+        SymbolTable* st;
+    
+        void advance(); 
 
-public:
+    public:
     //Construtor
-    Scanner(string);
+        Scanner(string, SymbolTable*);
 
-    int getLine();
+        int getLine();
+    
+        //Método que retorna o próximo token da entrada
+        Token* nextToken();
+    
+        //Método para manipular erros
+        void lexicalError(string);
 
-    //Funções auxiliares para o Parser 
-    int getPos();
-    void setPos(int);
-    int getLineInternal();
-    void setLine(int);
-
-
-    //Método que retorna o próximo token da entrada
-    Token *nextToken();
-
-    //Método para manipular erros
-    void lexicalError(string);
 };
-
-#endif

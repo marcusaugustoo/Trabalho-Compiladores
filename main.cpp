@@ -1,21 +1,27 @@
 #include "parser.h"
+#include <iostream>   
+#include <stdexcept>  
+#include <cstdlib>    
 
 int main(int argc, char* argv[]) 
 {
-    //Verifica se foi executado corretamente
-    //Essa main espera receber o nome do arquivo a ser
-    //executado na linha de comando.
     if (argc != 2)
     {
-        cout<< "Uso: ./compiler nome_arquivo.xpp\n";
+        std::cout << "Uso: ./xpp nome_arquivo.xpp\n"; 
         return 1;
     }
 
-    Parser* parser = new Parser(argv[1]);
-
-    parser->run();
-
-    delete parser; 
+    try
+    {
+        Parser* parser = new Parser(argv[1]);
+        parser->run();
+        std::cout << "Compilacao encerrada com sucesso!" << std::endl;
+    }
+    catch(const std::runtime_error& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return 0;
 }

@@ -1,218 +1,225 @@
-#include "scanner.h"
+#include "scanner.h"    
+#include <stdexcept> 
+#include <string>    
+#include <cstdlib>
 
-//Construtor que recebe uma string com o nome do arquivo 
-//de entrada e preenche input com seu conteúdo.
-Scanner::Scanner(string input_file)
+//Construtor
+Scanner::Scanner(string input, SymbolTable* table)
 {
     pos = 0;
     line = 1;
-
-    //Preenche o mapa de palavras reservadas
-    reservedKeywords["class"] =       CLASS;
-    reservedKeywords["extends"] =     EXTENDS;
-    reservedKeywords["int"] =         INT;
-    reservedKeywords["string"] =      STRING;
-    reservedKeywords["break"] =       BREAK;
-    reservedKeywords["print"] =       PRINT;
-    reservedKeywords["read"] =        READ;
-    reservedKeywords["return"] =      RETURN;
-    reservedKeywords["super"] =       SUPER;
-    reservedKeywords["if"] =          IF;
-    reservedKeywords["else"] =        ELSE;
-    reservedKeywords["for"] =         FOR;
-    reservedKeywords["new"] =         NEW;
-    reservedKeywords["constructor"] = CONSTRUCTOR;
-
-
-    ifstream inputFile(input_file, ios::in);
-    string file_line;
-
+    st = table;
+    ifstream inputFile(input, ios::in);
+    string lineContent;
     if (inputFile.is_open())
     {
-        while (getline(inputFile, file_line))
+        while (getline(inputFile, lineContent) )
         {
-            this->input.append(file_line + '\n');
+            if (!lineContent.empty() && lineContent.back() == '\r') {
+                lineContent.pop_back();
+            }
+            this->input.append(lineContent + '\n');
         }
         inputFile.close();
     }
-    else
+    else 
         cout << "Unable to open file\n";
 }
 
-int Scanner::getLine()
+int
+Scanner::getLine()
 {
     return line;
 }
 
-//Funções auxiliares para o Parser
-int Scanner::getPos() { return pos; }
-void Scanner::setPos(int p) { pos = p; }
-int Scanner::getLineInternal() { return line; }
-void Scanner::setLine(int l) { line = l; }
-
-
-//Método que retorna o próximo token da entrada
-Token *
-Scanner::nextToken()
+void Scanner::advance()
 {
-    string lexeme;
+    if (pos < input.length() && input[pos] == '\n')
+    {
+        line++;
+    }
+    pos++;
+}
 
-    //Loop para ignorar espaços em branco e comentários
+Token* Scanner::nextToken()
+{
+    Token* tok = nullptr;
+    string lexeme;
+    
     while (pos < input.length())
     {
-        //Ignora espaços em branco e tabulações
-        if (input[pos] == ' ' || input[pos] == '\t' || input[pos] == '\r')
+        //1. Ignora Espaços em Branco
+        if (isspace(input[pos]))
         {
-            pos++;
+            advance();
             continue;
         }
-        //Trata nova linha
-        else if (input[pos] == '\n')
+        
+        //2. Trata comentários (// e /*) ou OP_DIV (/)
+        if (input[pos] == '/')
         {
-            line++;
-            pos++;
-            continue;
-        }
-        //Trata comentários
-        else if (input[pos] == '/')
-        {
-            //Comentário de linha
-            if (pos + 1 < input.length() && input[pos + 1] == '/')
+            // Comentário de linha (//)
+            if (pos + 1 < input.length() && input[pos+1] == '/')
             {
+                pos += 2; // Pula "//"
                 while (pos < input.length() && input[pos] != '\n')
                 {
                     pos++;
                 }
                 continue; 
             }
-            //Comentário de bloco
-            else if (pos + 1 < input.length() && input[pos + 1] == '*')
+            // Comentário de bloco (/*)
+            else if (pos + 1 < input.length() && input[pos+1] == '*')
             {
-                pos += 2; 
-                while (pos + 1 < input.length() && (input[pos] != '*' || input[pos + 1] != '/'))
+                pos += 2; // Pula "/*"
+                bool closed = false;
+                while (pos < input.length())
                 {
-                    if (input[pos] == '\n')
+                    if (input[pos] == '*' && pos + 1 < input.length() && input[pos+1] == '/')
                     {
-                        line++;
+                        pos += 2; // Pula "*/"
+                        closed = true;
+                        break;
                     }
-                    pos++;
+                    advance(); 
                 }
-                if (pos + 1 >= input.length())
+                if (!closed)
                 {
-                    lexicalError("Comentario de bloco nao fechado.");
+                    lexicalError("Comentario de bloco nao fechado");
                 }
-                pos += 2; 
-                continue;
+                continue; 
             }
-            // Se for apenas '/', é o operador de divisão
             else
             {
                 break;
             }
         }
-        else
-        {
-            break; 
-        }
+        
+        break;
     }
 
-    //Verifica fim de arquivo
+
+    //Fim da entrada
     if (pos >= input.length())
     {
         return new Token(END_OF_FILE);
     }
-
-    //Reconhecimento de ID e Palavras Reservadas
-    if (isalpha(input[pos]) || input[pos] == '_')
+    
+    char current_char = input[pos];
+    
+    //IDs (Começa com letra ou _)
+    if (isalpha(current_char) || current_char == '_')
     {
-        lexeme += input[pos++];
+        lexeme += current_char;
+        advance();
         while (pos < input.length() && (isalnum(input[pos]) || input[pos] == '_'))
         {
-            lexeme += input[pos++];
+            lexeme += input[pos];
+            advance();
         }
-
-        //Verifica se o lexema é uma palavra reservada
-        if (reservedKeywords.count(lexeme))
-        {
-            return new Token(reservedKeywords[lexeme], lexeme);
-        }
-        
-        return new Token(ID, lexeme);
+        STEntry* obj = st->get(lexeme);
+        if (!obj)
+            tok = new Token(ID, lexeme);
+        else 
+            tok = new Token(obj->token->name, obj->token->lexeme);
     }
-
-    //Reconhecimento de Números Inteiros
-    if (isdigit(input[pos]))
+    //Números (INTEGER_LITERAL)
+    else if (isdigit(current_char))
     {
-        lexeme += input[pos++];
+        lexeme += current_char;
+        advance();
         while (pos < input.length() && isdigit(input[pos]))
         {
-            lexeme += input[pos++];
+            lexeme += input[pos];
+            advance();
         }
-        return new Token(INTEGER_LITERAL, lexeme);
+        tok = new Token(INTEGER_LITERAL, lexeme);
     }
-
-    //Reconhecimento de Literais String
-    if (input[pos] == '"')
+    //Strings (STRING_LITERAL)
+    else if (current_char == '"')
     {
-        pos++; 
-        while (pos < input.length() && input[pos] != '"')
+        advance(); // Pula o " inicial
+        while (pos < input.length() && input[pos] != '"' && input[pos] != '\n')
         {
-            if (input[pos] == '\n')
-            { 
-                lexicalError("String literal nao fechada na mesma linha.");
-            }
-            lexeme += input[pos++];
+            lexeme += input[pos];
+            advance();
         }
-        if (pos >= input.length())
+        if (pos >= input.length() || input[pos] == '\n')
         {
-            lexicalError("String literal nao fechada.");
+            lexicalError("Literal de string nao fechado");
         }
-        pos++; 
-        return new Token(STRING_LITERAL, lexeme);
+        
+        advance(); // Pula o " final
+        tok = new Token(STRING_LITERAL, lexeme);
     }
-
-    //Reconhecimento de Operadores e Separadores
-    switch (input[pos++])
+    //Operadores e Separadores
+    else 
     {
-    //Operadores de dois caracteres
-    case '<':
-        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_LE, "<="); } else return new Token(OP_LT, "<");
-    case '>':
-        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_GE, ">="); } else return new Token(OP_GT, ">");
-    case '=':
-        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_EQ, "=="); } else return new Token(OP_ASSIGN, "=");
-    case '!':
-        if (pos < input.length() && input[pos] == '=') { pos++; return new Token(OP_NE, "!="); } else { lexicalError("Caractere '!' invalido."); return new Token(UNDEF); }
-
-    //Operadores de um caractere
-    case '+': return new Token(OP_SUM, "+");
-    case '-': return new Token(OP_SUB, "-");
-    case '*': return new Token(OP_MUL, "*");
-    case '/': return new Token(OP_DIV, "/");
-    case '%': return new Token(OP_MOD, "%");
-
-    //Separadores
-    case '(': return new Token(SEP_LPAREN, "(");
-    case ')': return new Token(SEP_RPAREN, ")");
-    case '[': return new Token(SEP_LBRACKET, "[");
-    case ']': return new Token(SEP_RBRACKET, "]");
-    case '{': return new Token(SEP_LBRACE, "{");
-    case '}': return new Token(SEP_RBRACE, "}");
-    case ',': return new Token(SEP_COMMA, ",");
-    case '.': return new Token(SEP_DOT, ".");
-    case ';': return new Token(SEP_SEMICOLON, ";");
-
-    default:
-        lexicalError("Caractere invalido: '" + string(1, input[pos - 1]) + "'");
+        switch (current_char)
+        {
+            case '(': advance(); tok = new Token(SEP_LPAREN, "("); break;
+            case ')': advance(); tok = new Token(SEP_RPAREN, ")"); break;
+            case '[': advance(); tok = new Token(SEP_LBRACKET, "["); break;
+            case ']': advance(); tok = new Token(SEP_RBRACKET, "]"); break;
+            case '{': advance(); tok = new Token(SEP_LBRACE, "{"); break;
+            case '}': advance(); tok = new Token(SEP_RBRACE, "}"); break;
+            case ';': advance(); tok = new Token(SEP_SEMICOLON, ";"); break;
+            case '.': advance(); tok = new Token(SEP_DOT, "."); break;
+            case ',': advance(); tok = new Token(SEP_COMMA, ","); break;
+            case '+': advance(); tok = new Token(OP_PLUS, "+"); break;
+            case '-': advance(); tok = new Token(OP_MINUS, "-"); break;
+            case '*': advance(); tok = new Token(OP_MULT, "*"); break;
+            case '/': advance(); tok = new Token(OP_DIV, "/"); break;
+            case '%': advance(); tok = new Token(OP_MOD, "%"); break;
+            case '<':
+                advance();
+                if (pos < input.length() && input[pos] == '=') {
+                    advance();
+                    tok = new Token(OP_LE, "<=");
+                } else {
+                    tok = new Token(OP_LT, "<");
+                }
+                break;
+            case '>':
+                advance();
+                if (pos < input.length() && input[pos] == '=') {
+                    advance();
+                    tok = new Token(OP_GE, ">=");
+                } else {
+                    tok = new Token(OP_GT, ">");
+                }
+                break;
+            case '=':
+                advance();
+                if (pos < input.length() && input[pos] == '=') {
+                    advance();
+                    tok = new Token(OP_EQ, "==");
+                } else {
+                    tok = new Token(OP_ASSIGN, "="); // Envia 28
+                }
+                break;
+            case '!':
+                advance();
+                if (pos < input.length() && input[pos] == '=') {
+                    advance();
+                    tok = new Token(OP_NE, "!=");
+                } else {
+                    lexicalError("Caractere '!' sozinho nao eh um token valido.");
+                }
+                break;
+            default:
+                lexeme += current_char;
+                lexicalError("Caractere invalido: '" + lexeme + "'");
+                break;
+        }
     }
-
-    return new Token(UNDEF); 
+    return tok;
 }
 
-void
+
+void 
 Scanner::lexicalError(string msg)
 {
-    cout << "Linha " << line << ": " << msg << endl;
-
-    exit(EXIT_FAILURE);
+    std::string error_msg = "Erro Lexico - Linha " + std::to_string(line) + ": " + msg;
+    throw std::runtime_error(error_msg);
 }

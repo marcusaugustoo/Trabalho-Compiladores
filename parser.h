@@ -9,9 +9,13 @@ class Parser
 private:
     Scanner *scanner;
     Token *lToken; 
+    SymbolTable* globalST;
+    SymbolTable* currentST;
 
     void advance();
     void match(int);
+    void initSimbolTable();
+    void error(string);
 
     //Funções para cada não-terminal da gramática
     void program();
@@ -19,6 +23,9 @@ private:
     void classDecl();
     void classBody();
     void varDeclListOpt();
+    
+    void varDeclList(); 
+
     void varDecl();
     void varDeclOpt();
     void type();
@@ -54,8 +61,6 @@ private:
     void argListOpt();
     void argList();
 
-    //Função de erro
-    void error(string);
 
 public:
     Parser(string);
