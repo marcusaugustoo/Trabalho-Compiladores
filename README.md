@@ -34,4 +34,4 @@ Exemplo:
 ## 👥 Autores
 
 - **Caio K. F. Mendes**  
-- **Marcus Augusto F. Madureira**
+- **Marcus Augusto Ferreira Madureira**
