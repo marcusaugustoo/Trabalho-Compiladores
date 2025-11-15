@@ -657,8 +657,6 @@ Parser::initSimbolTable()
 	globalST->add(new STEntry(t, true));
 	t = new Token(EXTENDS, "extends");
     globalST->add(new STEntry(t, true));
-    t = new Token(PUBLIC, "public"); 
-    globalST->add(new STEntry(t, true));
 	t = new Token(INT, "int");
     globalST->add(new STEntry(t, true));
 	t = new Token(STRING, "string");

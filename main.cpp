@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
     if (argc != 2)
     {
-        std::cout << "Uso: ./xpp nome_arquivo.xpp\n"; 
+        std::cout << "Uso: ./xpp_compiler nome_arquivo.xpp\n"; 
         return 1;
     }
 

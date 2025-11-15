@@ -27,38 +27,37 @@ enum Names
     FOR, // 13
     NEW, // 14
     CONSTRUCTOR, // 15
-    PUBLIC,  // 16
     
     //Literais
-    INTEGER_LITERAL, // 17
-    STRING_LITERAL, // 18
+    INTEGER_LITERAL, // 16
+    STRING_LITERAL, // 17
     
     //Operadores 
-    OP_LT,   // < 19
-    OP_GT,   // > 20
-    OP_LE,   // <= 21
-    OP_GE,   // >= 22
-    OP_PLUS, // + 23
-    OP_MINUS,// - 24
-    OP_MULT, // * 25
-    OP_DIV,  // / 26
-    OP_MOD,  // % 27
-    OP_ASSIGN, // = 28  
-    OP_EQ,   // == 29
-    OP_NE,   // != 30
+    OP_LT,   // < 18
+    OP_GT,   // > 19
+    OP_LE,   // <= 20
+    OP_GE,   // >= 21
+    OP_PLUS, // + 22
+    OP_MINUS,// - 23
+    OP_MULT, // * 24
+    OP_DIV,  // / 25
+    OP_MOD,  // % 26
+    OP_ASSIGN, // = 27  
+    OP_EQ,   // == 28
+    OP_NE,   // != 29
     
     //Separadores
-    SEP_LPAREN,   // ( 31
-    SEP_RPAREN,   // ) 32
-    SEP_LBRACKET, // [ 33
-    SEP_RBRACKET, // ] 34
-    SEP_LBRACE,   // { 35
-    SEP_RBRACE,   // } 36
-    SEP_SEMICOLON,// ; 37
-    SEP_DOT,      // . 38
-    SEP_COMMA,    // , 39
+    SEP_LPAREN,   // ( 30
+    SEP_RPAREN,   // ) 31
+    SEP_LBRACKET, // [ 32
+    SEP_RBRACKET, // ] 33
+    SEP_LBRACE,   // { 34
+    SEP_RBRACE,   // } 35
+    SEP_SEMICOLON,// ; 36
+    SEP_DOT,      // . 37
+    SEP_COMMA,    // , 38
 
-    END_OF_FILE // 40
+    END_OF_FILE // 39
 };
 
 class Token 
